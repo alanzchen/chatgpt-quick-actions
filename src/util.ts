@@ -2,7 +2,7 @@ import { closeMainWindow } from "@raycast/api";
 import { runAppleScript } from "run-applescript";
 
 function escapeStringForAppleScript(str: string) {
-  return str.replace(/[\\"]/g, '\\$&');
+  return str.replace(/[\\"]/g, "\\$&");
 }
 
 export async function sentToSideNote(content: string) {

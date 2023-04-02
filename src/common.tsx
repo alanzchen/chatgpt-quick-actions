@@ -30,7 +30,10 @@ export default function ResultView(prompt: string, toast_title: string) {
       const stream = await openai.createChatCompletion(
         {
           model: model,
-          messages: [{ role: "user", content: prompt + selectedText }],
+          messages: [
+            { role: "system", content: prompt },
+            { role: "user", content: selectedText }
+          ],
           stream: true,
         },
         { responseType: "stream" }

@@ -13,13 +13,19 @@
     {
       "name": "summarize",
       "title": "Summarize",
-      "description": "Summarize selected text and copy to pasteboard",
+      "description": "Summarize selected text",
       "mode": "view"
     },
     {
       "name": "rewrite",
       "title": "Rewrite",
-      "description": "Rewrite selected text and copy to pasteboard",
+      "description": "Rewrite selected text",
+      "mode": "view"
+    },
+    {
+      "name": "refine",
+      "title": "Refine",
+      "description": "Refine the writing of selected text",
       "mode": "view"
     },
     {
@@ -62,6 +68,14 @@
       "description": "The prompt for the rewrite command",
       "type": "textfield",
       "default": "Rewrite this using an academic tone: \n\n",
+      "required": false
+    },
+    {
+      "name": "prompt_refine",
+      "title": "Refine Prompt",
+      "description": "The prompt for the refine command",
+      "type": "textfield",
+      "default": "Refine the writing and correct grammar mistakes: \n\n",
       "required": false
     },
     {
