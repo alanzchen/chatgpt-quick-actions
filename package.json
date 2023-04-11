@@ -42,6 +42,7 @@
     }
   ],
   "dependencies": {
+    "@nem035/gpt-3-encoder": "^1.1.7",
     "@raycast/api": "^1.48.5",
     "openai": "^3.2.1",
     "run-applescript": "^6.1.0"
@@ -53,6 +54,23 @@
       "type": "password",
       "required": true,
       "title": "OpenAI API Key"
+    },
+    {
+      "name": "model",
+      "description": "OpenAI LLM to use for your commands",
+      "type": "dropdown",
+      "data": [
+        {
+          "title": "GPT-3.5 Turbo",
+          "value": "gpt-3.5-turbo"
+        },
+        {
+          "title": "GPT-4",
+          "value": "gpt-4"
+        }
+      ],
+      "required": true,
+      "title": "OpenAI Model"
     },
     {
       "name": "prompt_summarize",
