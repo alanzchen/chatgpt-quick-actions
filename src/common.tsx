@@ -9,8 +9,9 @@ import {
   Icon,
 } from "@raycast/api";
 import { useEffect, useState } from "react";
-import { global_model, openai } from "./api";
+import { global_model, enable_streaming, openai, using_azure } from "./api";
 import { countToken, estimatePrice, sentToSideNote } from "./util";
+import { Stream } from "openai/streaming";
 
 export default function ResultView(prompt: string, model_override: string, toast_title: string) {
   const pref = getPreferenceValues();
@@ -18,7 +19,6 @@ export default function ResultView(prompt: string, model_override: string, toast
   const [prompt_token_count, setPromptTokenCount] = useState(0);
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(true);
-  let response_ = "";
   const [cumulative_tokens, setCumulativeTokens] = useState(0);
   const [cumulative_cost, setCumulativeCost] = useState(0);
   const [model, setModel] = useState(model_override == "global" ? global_model : model_override);
@@ -28,75 +28,67 @@ export default function ResultView(prompt: string, model_override: string, toast
     let duration = 0;
     const toast = await showToast(Toast.Style.Animated, toast_title);
 
-    async function getStream(prompt: string) {
-      let selectedText = "";
+    async function getChatResponse(prompt: string, selectedText: string) {
       try {
-        selectedText = await getSelectedText();
-      } catch (error) {
-        toast.title = "Error";
-        toast.style = Toast.Style.Failure;
-        setLoading(false);
-        setResponse(
-          "⚠️ Raycast was unable to get the selected text. You may try copying the text to a text editor and try again."
-        );
-        return;
-      }
-
-      try {
-        const stream = await openai.createChatCompletion(
-          {
-            model: model,
-            messages: [
-              { role: "system", content: prompt },
-              { role: "user", content: selectedText },
-            ],
-            stream: true,
-          },
-          { responseType: "stream" }
-        );
+        const streamOrCompletion = await openai.chat.completions.create({
+          model: model,
+          messages: [
+            { role: "system", content: prompt },
+            { role: "user", content: selectedText },
+          ],
+          stream: enable_streaming,
+        });
         setPromptTokenCount(countToken(prompt + selectedText));
-        return stream;
+        return streamOrCompletion;
       } catch (error) {
         toast.title = "Error";
         toast.style = Toast.Style.Failure;
         setLoading(false);
-        setResponse(
-          `⚠️ Failed to get response from OpenAI. Please check your network connection and API key. \n\n Error Message: \`\`\`${
-            (error as Error).message
-          }\`\`\``
-        );
+        const response_ =
+          "⚠️ Failed to get response from OpenAI. Please check your network connection and API key.\n\n" +
+          (using_azure ? `If using Azure, please make sure you've supplied the config as required by your deployment or try disabling response streaming.\n\n` : '') +
+          `Error Message: \`\`\`${(error as Error).message}\`\`\``;
+        setResponse(response_);
         return;
       }
     }
 
-    getStream(prompt).then(async (stream) => {
-      if (!stream) return;
-      (stream.data as any).on("data", (data: any) => {
-        const lines = data
-          .toString()
-          .split("\n")
-          .filter((line: string) => line.trim() !== "");
-        for (const line of lines) {
-          const message = line.replace(/^data: /, "");
-          if (message === "[DONE]") {
-            setLoading(false);
-            const done = new Date();
-            duration = (done.getTime() - now.getTime()) / 1000;
-            toast.style = Toast.Style.Success;
-            toast.title = `Finished in ${duration} seconds`;
-            return; // Stream finished
-          }
-          try {
-            const parsed = JSON.parse(message);
-            const content = parsed.choices[0].delta.content;
-            if (content) response_ += parsed.choices[0].delta.content;
-            setResponse(response_);
-            setResponseTokenCount(countToken(response_));
-          } catch (error) {
-            console.error("Could not JSON parse stream message", message, error);
-          }
+    let selectedText = "";
+    try {
+      selectedText = await getSelectedText();
+    } catch (error) {
+      toast.title = "Error";
+      toast.style = Toast.Style.Failure;
+      setLoading(false);
+      setResponse(
+        "⚠️ Raycast was unable to get the selected text. You may try copying the text to a text editor and try again."
+      );
+      return;
+    }
+
+    getChatResponse(prompt, selectedText).then(async (resp) => {
+      if (!resp) return;
+
+      let response_ = "";
+      function appendResponse(part: string) {
+        response_ += part;
+        setResponse(response_);
+        setResponseTokenCount(countToken(response_));
+      }
+
+      if (resp instanceof Stream) {
+        for await (const part of resp) {
+          appendResponse(part.choices[0]?.delta?.content ?? "");
         }
-      });
+      } else {
+        appendResponse(resp.choices[0]?.message?.content ?? "");
+      }
+
+      setLoading(false);
+      const done = new Date();
+      duration = (done.getTime() - now.getTime()) / 1000;
+      toast.style = Toast.Style.Success;
+      toast.title = `Finished in ${duration} seconds`;
     });
   }
 
