@@ -274,7 +274,7 @@
   "dependencies": {
     "@nem035/gpt-3-encoder": "^1.1.7",
     "@raycast/api": "^1.50.0",
-    "openai": "^3.2.1",
+    "openai": "^4.14.2",
     "run-applescript": "^6.1.0"
   },
   "preferences": [
@@ -317,6 +317,44 @@
       "label": "Enabled",
       "type": "checkbox",
       "default": false,
+      "required": false
+    },
+    {
+      "name": "useAzure",
+      "label": "Use Azure OpenAI",
+      "description": "Use Azure OpenAI rather than OpenAI",
+      "type": "checkbox",
+      "title": "Use Azure OpenAI",
+      "default": false,
+      "required": false
+    },
+    {
+      "name": "azureEndpoint",
+      "description": "Leave empty if you are not using Azure OpenAI. Example: https://your-org.azure-api.net",
+      "type": "textfield",
+      "title": "Azure Endpoint",
+      "required": false
+    },
+    {
+      "name": "azureDeployment",
+      "description": "Leave empty if you are not using Azure OpenAI. Example: gpt-35-turbo",
+      "type": "textfield",
+      "title": "Azure Deployment",
+      "required": false
+    },
+    {
+      "name": "azureAPIVersion",
+      "description": "Leave empty if you are not using Azure OpenAI. Example: 2020-10-10",
+      "type": "textfield",
+      "title": "Azure API Version",
+      "required": false
+    },
+    {
+      "name": "enableStreaming",
+      "description": "Enable response streaming. This may not be supported by all custom deployments.",
+      "type": "checkbox",
+      "title": "Enable Response Streaming",
+      "default": true,
       "required": false
     }
   ],
