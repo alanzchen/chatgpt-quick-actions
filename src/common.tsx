@@ -10,10 +10,17 @@ import {
 } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { global_model, enable_streaming, openai, using_azure } from "./api";
-import { countToken, estimatePrice, sentToSideNote } from "./util";
+import { countToken, estimatePrice, sendToSideNote } from "./util";
 import { Stream } from "openai/streaming";
 
-export default function ResultView(prompt: string, model_override: string, toast_title: string) {
+export default function ResultView(props: {
+  sys_prompt: string,
+  selected_text?: string, // If defined, uses this as selected text
+  user_extra_msg?: string, // If not empty, appends this to the user message
+  model_override: string,
+  toast_title: string,
+}) {
+  const { sys_prompt, selected_text, user_extra_msg, model_override, toast_title } = props;
   const pref = getPreferenceValues();
   const [response_token_count, setResponseTokenCount] = useState(0);
   const [prompt_token_count, setPromptTokenCount] = useState(0);
@@ -34,7 +41,7 @@ export default function ResultView(prompt: string, model_override: string, toast
           model: model,
           messages: [
             { role: "system", content: prompt },
-            { role: "user", content: selectedText },
+            { role: "user", content: selectedText + (user_extra_msg ? `\n\n${user_extra_msg}` : '') },
           ],
           stream: enable_streaming,
         });
@@ -53,20 +60,23 @@ export default function ResultView(prompt: string, model_override: string, toast
       }
     }
 
-    let selectedText = "";
-    try {
-      selectedText = await getSelectedText();
-    } catch (error) {
-      toast.title = "Error";
-      toast.style = Toast.Style.Failure;
-      setLoading(false);
-      setResponse(
-        "⚠️ Raycast was unable to get the selected text. You may try copying the text to a text editor and try again."
-      );
-      return;
+    let selectedText = selected_text;
+    if (selectedText === undefined) {
+      try {
+        selectedText = await getSelectedText();
+      } catch (error) {
+        console.log(error);
+        toast.title = "Error";
+        toast.style = Toast.Style.Failure;
+        setLoading(false);
+        setResponse(
+          "⚠️ Raycast was unable to get the selected text. You may try copying the text to a text editor and try again."
+        );
+        return;
+      }
     }
 
-    getChatResponse(prompt, selectedText).then(async (resp) => {
+    getChatResponse(sys_prompt, selectedText).then(async (resp) => {
       if (!resp) return;
 
       let response_ = "";
@@ -122,7 +132,7 @@ export default function ResultView(prompt: string, model_override: string, toast
       <Action
         title="Send to SideNote"
         onAction={async () => {
-          await sentToSideNote(response);
+          await sendToSideNote(response);
         }}
         shortcut={{ modifiers: ["cmd"], key: "s" }}
         icon={Icon.Sidebar}

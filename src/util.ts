@@ -6,7 +6,7 @@ function escapeStringForAppleScript(str: string) {
   return str.replace(/[\\"]/g, "\\$&");
 }
 
-export async function sentToSideNote(content: string) {
+export async function sendToSideNote(content: string) {
   const applescript = `
   tell application "SideNotes"
     set f to first folder

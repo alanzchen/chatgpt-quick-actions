@@ -6,5 +6,5 @@ const model_override = getPreferenceValues().model_summarize;
 const toast_title = "Summarizing...";
 
 export default function Summarize() {
-  return ResultView(prompt, model_override, toast_title);
+  return <ResultView sys_prompt={prompt} model_override={model_override} toast_title={toast_title} />;
 }
