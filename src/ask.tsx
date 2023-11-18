@@ -41,14 +41,13 @@ export default function AskView() {
         setCanUseContext(true);
         setUsingContext(true);
       } catch (error) {
-        // Pass an empty string so ResultView won't try getting selected text
+        // No selected text. Pass an empty string so ResultView won't try getting selected text
         setCanUseContext(false);
       }
     })();
   }, []);
 
   useEffect(() => {
-    console.log("usingContext changed to", usingContext);
     setQuestionErrorIfNeeded();
   }, [usingContext]);
 
@@ -101,6 +100,7 @@ export default function AskView() {
           <Form.Description
             title="Context"
             text={
+              // Undefined when we're still trying to get the selection
               canUseContext === false ? 'No selected text' : 'Getting selected text...'
             }
           />
