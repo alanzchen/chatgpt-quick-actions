@@ -387,6 +387,10 @@
         {
           "title": "GPT-4 (32K, 0613)",
           "value": "gpt-4-32k-0613"
+        },
+        {
+          "title": "GPT-4 Turbo",
+          "value": "gpt-4-turbo-preview"
         }
       ],
       "required": true,
