@@ -36,6 +36,8 @@ export function estimatePrice(prompt_token: number, output_token: number, model:
     price = (prompt_token * 0.03 + output_token * 0.06) / 10;
   } else if (model == "gpt-4-32k-0613") {
     price = (prompt_token * 0.03 + output_token * 0.06) / 10;
+  } else if (model == "gpt-4-turbo-preview") {
+    price = (prompt_token * 0.01 + output_token * 0.03) / 10;
   } else {
     return -1;
   }
